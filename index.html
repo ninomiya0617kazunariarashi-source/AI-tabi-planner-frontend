@@ -1,24 +1,457 @@
-// =======================================
-// 💻 HTML/JavaScriptコード (Vercel用)
-// 💡 エラー対策: fetchに 'Content-Type': 'application/json' ヘッダーを追加
-// =======================================
-// ... (中略: HTML/CSS/loadInitialDateなどの基本関数は変更なし) ...
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>AI Trip Planner ✈️</title>
+  <style>
+    :root {
+      --color-primary: #58A4B1; 
+      --color-secondary: #C7E0E5; 
+      --color-light-bg: #EAF2F4; 
+      --color-white: #ffffff;
+      --color-text: #333;
+      --color-shadow: rgba(88, 164, 177, 0.4); 
+      --font-scale: 1.1;
+    }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Arial', sans-serif;
+      font-size: calc(16px * var(--font-scale));
+      background-color: var(--color-light-bg);
+      color: var(--color-text);
+      margin: 0;
+      padding: 0; 
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 90%; 
+      max-width: 1200px; 
+      margin: 30px auto; 
+      background-color: var(--color-white);
+      padding: calc(40px * var(--font-scale));
+      border-radius: 15px; 
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      display: flex; 
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    h1 {
+      color: var(--color-primary);
+      text-align: center;
+      margin-bottom: calc(30px * var(--font-scale));
+      font-size: calc(2.2em * var(--font-scale));
+      text-shadow: 1px 1px 3px rgba(88, 164, 177, 0.2);
+    }
+    
+    .input-section {
+      width: 100%; 
+      padding: 25px;
+      border-radius: 15px;
+      background-color: var(--color-secondary); 
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      order: 1; 
+    }
+    .input-fields-row {
+        display: flex;
+        flex-wrap: wrap; 
+        gap: 20px;
+        align-items: flex-end; 
+    }
+    .input-field-group {
+        flex: 1;
+        min-width: 180px; 
+    }
+    
+    .input-field-group.date-time-group {
+        flex-basis: 150px; 
+        min-width: 100px;
+    }
+    .input-field-group.transport-group {
+          order: 5; 
+          flex-basis: calc(50% - 10px);
+          min-width: 300px;
+    }
+    .input-field-group.prefs-group {
+          order: 6; 
+          flex-basis: calc(50% - 10px);
+          min-width: 300px;
+          margin-top: 10px; 
+    }
+
+    .result-section {
+        flex: 1; 
+        padding: 0; 
+        background-color: var(--color-white);
+        order: 2; 
+    }
+
+    label {
+      display: block;
+      margin-top: calc(18px * var(--font-scale));
+      margin-bottom: calc(5px * var(--font-scale));
+      font-weight: 700;
+      color: var(--color-primary);
+      border-left: 5px solid var(--color-primary); 
+      padding-left: 12px;
+      font-size: 1em;
+    }
+    
+    .input-section label {
+        margin-top: 5px;
+    }
+    .input-field-group label {
+        margin-top: 10px;
+    }
+
+
+    input[type="text"], input[type="number"], input[type="date"], select {
+      width: calc(100% - 20px);
+      padding: calc(12px * var(--font-scale));
+      margin-bottom: calc(12px * var(--font-scale));
+      border: 2px solid #A2D5E0; 
+      border-radius: 8px;
+      background-color: var(--color-white);
+      font-size: 1em;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-sizing: border-box; 
+    }
+    
+    input:focus, select:focus, input[type="date"]:focus, input[type="number"]:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 5px rgba(88, 164, 177, 0.5); 
+        outline: none;
+    }
+    
+    .checkbox-group {
+      border: 1px dashed var(--color-primary);
+      padding: 10px;
+      border-radius: 10px;
+      background-color: #f0ffff; 
+      margin-bottom: calc(15px * var(--font-scale));
+      box-sizing: border-box;
+      width: 100%; 
+    }
+    .checkbox-group label {
+        display: inline-block;
+        margin: 5px 15px 5px 0;
+        border-left: none;
+        font-weight: normal;
+        color: var(--color-text);
+        padding-left: 0;
+        cursor: pointer;
+    }
+
+    button#btn {
+      background-color: var(--color-primary);
+      color: var(--color-white);
+      padding: calc(18px * var(--font-scale)) calc(20px * var(--font-scale));
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: calc(1.2em * var(--font-scale));
+      font-weight: bold;
+      width: 100%;
+      margin-top: calc(25px * var(--font-scale));
+      transition: background-color 0.2s, transform 0.1s;
+      box-shadow: 0 6px 10px var(--color-shadow);
+    }
+    button#btn:hover:not(:disabled) {
+        background-color: #498994; 
+        transform: translateY(-3px);
+    }
+    button#btn:disabled {
+        background-color: #aebfd6; 
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+
+    #result {
+      margin-top: 20px;
+      min-height: 50px;
+    }
+
+    .plan-card {
+      background-color: var(--color-white);
+      border: 1px solid #A2D5E0; 
+      border-radius: 15px;
+      padding: calc(25px * var(--font-scale));
+      margin-bottom: calc(30px * var(--font-scale));
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      border-left: 8px solid var(--color-primary); 
+    }
+    .plan-card h3 {
+      font-size: calc(1.6em * var(--font-scale));
+      margin-bottom: 15px;
+      color: var(--color-primary);
+      border-bottom: 2px dashed #A2D5E0; 
+      padding-bottom: 8px;
+    }
+    .plan-card h3 span {
+        display: block; 
+        font-size: 0.8em;
+        color: #7f8c8d;
+        font-weight: normal;
+        margin-left: 0; 
+        margin-top: 5px; 
+        background-color: #f7f7f7;
+        padding: 5px 10px;
+        border-radius: 8px;
+        width: fit-content; 
+    }
+
+    .plan-table {
+        width: 100%;
+        border-collapse: separate; 
+        border-spacing: 0 5px; 
+        margin-top: 15px;
+        font-size: 0.9em;
+        table-layout: fixed; 
+    }
+    .plan-table th, .plan-table td {
+        padding: 10px;
+        text-align: left;
+        word-wrap: break-word; 
+        border: none;
+        vertical-align: top;
+    }
+    .plan-table th {
+        background-color: #A2D5E0; 
+        color: var(--color-text);
+        font-weight: bold;
+        border-radius: 8px 8px 0 0;
+    }
+    
+    .plan-table th:nth-child(1) { width: 4%; } 
+    .plan-table th:nth-child(2) { width: 10%; } 
+    .plan-table th:nth-child(3) { width: 16%; } 
+    .plan-table th:nth-child(4) { width: 12%; } 
+    .plan-table th:nth-child(5) { width: 18%; } 
+    .plan-table th:nth-child(6) { width: 10%; } 
+    .plan-table th:nth-child(7) { width: 10%; } 
+    .plan-table th:nth-child(8) { width: 20%; } 
+
+    .day-header {
+      background-color: #C7E0E5 !important; 
+      font-weight: bold;
+      border-radius: 10px 0 0 10px !important;
+    }
+    
+    .error-text { 
+        color: #e74c3c; 
+        font-weight: bold;
+    }
+    .loading-text {
+        font-size: 0.7em;
+        color: #7f8c8d;
+        white-space: nowrap;
+    }
+    .loading-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .spinner {
+        border: 4px solid rgba(88, 164, 177, 0.1);
+        border-top: 4px solid var(--color-primary);
+        border-radius: 50%;
+        width: 12px;
+        height: 12px;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    #loading-status {
+        margin-top: 20px;
+        font-weight: bold;
+        color: var(--color-primary);
+    }
+    .status-text {
+        font-weight: normal;
+        color: #555;
+        margin-left: 10px;
+    }
+  </style>
+</head>
+<body onload="loadInitialDate()">
+  <div class="container">
+      <h1>AI Trip Planner ✈️</h1>
+      
+      <div class="input-section">
+          <h2>旅程の条件設定</h2>
+          <div class="input-fields-row">
+              <div class="input-field-group">
+                  <label for="departure">出発地 🏠</label>
+                  <input id="departure" type="text" placeholder="例：東京駅" value="東京駅">
+              </div>
+
+              <div class="input-field-group">
+                  <label for="location">旅行先 📍</label>
+                  <input id="location" type="text" placeholder="例：鎌倉" value="鎌倉">
+              </div>
+
+              <div class="input-field-group" style="max-width: 100px;">
+                  <label for="nights">泊数 🛌</label>
+                  <input id="nights" type="number" min="1" placeholder="例：2" value="1">
+              </div>
+
+              <div class="input-field-group" style="max-width: 100px;">
+                  <label for="people">人数 👤</label>
+                  <input id="people" type="number" min="1" placeholder="例：1" value="1">
+              </div>
+
+              <div class="input-field-group date-time-group">
+                  <label for="departureDate">出発日 📅</label>
+                  <input id="departureDate" type="date" value="">
+              </div>
+              
+              <div class="input-field-group date-time-group">
+                  <label for="arrivalDate">到着日 📅</label>
+                  <input id="arrivalDate" type="date" value="">
+              </div>
+              
+              <div class="input-field-group date-time-group">
+                  <label for="startTime">出発時間 (時) ⌚</label>
+                  <select id="startTime"></select>
+              </div>
+              
+              <div class="input-field-group date-time-group">
+                  <label for="endTime">帰着時間 (時) ⌛</label>
+                  <select id="endTime"></select>
+              </div>
+
+              <div class="input-field-group transport-group">
+                  <label>主な交通手段 🚃</label>
+                  <div class="checkbox-group" id="transport-group" style="margin-bottom: 0;">
+                      <label><input type="checkbox" name="transport" value="電車" checked> 電車</label>
+                      <label><input type="checkbox" name="transport" value="飛行機"> 飛行機</label>
+                      <label><input type="checkbox" name="transport" value="新幹線"> 新幹線</label>
+                      <label><input type="checkbox" name="transport" value="車"> 車</label>
+                      <label><input type="checkbox" name="transport" value="レンタカー"> レンタカー</label>
+                  </div>
+              </div>
+
+              <div class="input-field-group prefs-group">
+                  <label>こだわり・希望 ✨</label>
+                  <div class="checkbox-group" id="prefs-group" style="margin-bottom: 0;">
+                      <label><input type="checkbox" name="prefs" value="SNS映え" checked> SNS映え</label>
+                      <label><input type="checkbox" name="prefs" value="温泉"> 温泉</label>
+                      <label><input type="checkbox" name="prefs" value="一人旅"> 一人旅</label>
+                      <label><input type="checkbox" name="prefs" value="海外風"> 海外風</label>
+                      <label><input type="checkbox" name="prefs" value="家族旅行"> 家族旅行</label>
+                      <label><input type="checkbox" name="prefs" value="グルメ"> グルメ</label>
+                      <label><input type="checkbox" name="prefs" value="自然・絶景"> 自然・絶景</label>
+                  </div>
+              </div>
+          </div>
+          
+          <div style="display: flex; gap: 20px; align-items: center;">
+              <button id="btn">AIでオリジナルプランを作成 ✍️</button>
+              <p class="note" style="margin: 0; font-size: 0.9em; color: #555;">※プラン生成には約10〜30秒かかりますが、詳細情報取得は並列で開始されます。</p>
+          </div>
+          
+      </div>
+      
+      <div class="result-section">
+          <div id="loading-status" style="display: none;"></div>
+          <div id="result">ここに旅行プランが提案されます。</div>
+      </div>
+  </div>
 
   <script>
     const btn = document.getElementById("btn");
     const result = document.getElementById("result");
     const loadingStatus = document.getElementById("loading-status");
 
-    // 💡 修正必須: ステップ1-2で取得した最新のウェブアプリURLを貼り付けてください
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyjcV5EtH_cu-uoxBl6Azz9Q4EMgeR6w1d9Z3-FKVyAUMILBafE41d2GMNRyqkQpjK3/exec"; 
+    // 💡 修正完了: ここにステップ1で取得したウェブアプリのURLを貼り付けます
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyesqnazgrNZZQE6Lcnw30OfFfqfp23xteYopp5T5uTxbero4WXnRO5GsUrDYYJcKE/exec"; 
 
-    // ... (中略: loadInitialDate, createTimeOptions, updateLoadingStatus, extractNumericCost関数は変更なし) ...
+    function createTimeOptions(selectId) {
+        const selectElement = document.getElementById(selectId);
+        selectElement.innerHTML = '';
+        for (let i = 0; i <= 23; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i.toString().padStart(2, '0') + ':00';
+            selectElement.appendChild(option);
+        }
+        if (selectId === 'startTime') {
+            selectElement.value = '9'; 
+        } else if (selectId === 'endTime') {
+            selectElement.value = '18'; 
+        }
+    }
     
-    // 💡 修正: GAS APIを呼び出す共通関数
+    function loadInitialDate() {
+        createTimeOptions('startTime');
+        createTimeOptions('endTime');
+        
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        document.getElementById('departureDate').value = todayStr;
+        document.getElementById('arrivalDate').value = todayStr;
+    }
+    
+    let totalSpotsToProcess = 0;
+    let processedSpotsCount = 0;
+    
+    function updateLoadingStatus(action = 'init') {
+        if (action === 'init') {
+            loadingStatus.style.display = 'block';
+            loadingStatus.innerHTML = `<div class="loading-wrapper"><div class="spinner"></div> AIが旅程を確定中...</div>`;
+            totalSpotsToProcess = 0;
+            processedSpotsCount = 0;
+            return;
+        }
+
+        if (action === 'start_sub_fetches') {
+            loadingStatus.innerHTML = `<div class="loading-wrapper"><div class="spinner"></div> 
+                旅程詳細情報を取得中... 
+                <span class="status-text">(住所、ルート計算)</span>
+            </div>`;
+        }
+
+        if (action === 'increment_total') {
+            totalSpotsToProcess++;
+            return;
+        }
+        
+        if (action === 'increment_processed') {
+            processedSpotsCount++;
+        }
+
+        if (totalSpotsToProcess > 0 && processedSpotsCount > 0) {
+            const percentage = Math.round((processedSpotsCount / totalSpotsToProcess) * 100);
+            loadingStatus.innerHTML = `<div class="loading-wrapper"><div class="spinner"></div> 
+                詳細情報を取得中... ${processedSpotsCount}/${totalSpotsToProcess} スポット (${percentage}%) 
+                <span class="status-text">※情報の表示は順次行われます。</span>
+            </div>`;
+        }
+
+        if (processedSpotsCount >= totalSpotsToProcess && totalSpotsToProcess > 0) {
+            loadingStatus.innerHTML = `<div class="loading-wrapper"><span style="color:green;">✅</span> 全ての詳細情報処理が完了しました。`;
+            setTimeout(() => { loadingStatus.style.display = 'none'; }, 5000); 
+        }
+    }
+    
+    function extractNumericCost(costString) {
+        if (!costString) return Infinity;
+        const numericStr = costString.replace(/[^0-9]/g, '');
+        return parseInt(numericStr) || Infinity;
+    }
+
     function runGasApi(action, payload = {}) {
         return fetch(GAS_API_URL, {
             method: 'POST',
-            // 💡 重要: このヘッダーがないとGASのdoPostがJSONデータを認識できません！
             headers: {
                 'Content-Type': 'application/json' 
             },
@@ -27,7 +460,6 @@
         })
         .then(response => {
             if (!response.ok) {
-                // HTTPエラーの際に詳細情報を表示
                 throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
             }
             return response.json(); 
@@ -40,7 +472,6 @@
         })
     }
 
-    // 💡 修正: fetchAndDisplayDirections関数をrunGasApiを使うように変更
     function fetchAndDisplayDirections(originStr, destinationStr, targetId, dateString, hour) {
         const targetElement = document.getElementById(targetId);
         if (!targetElement) return;
@@ -66,7 +497,6 @@
         });
     }
     
-    // 💡 修正: fetchAndDisplayCoordinates関数をrunGasApiを使うように変更
     function fetchAndDisplayCoordinates(spotName, targetId, nextCoordInfo, departureInfo) {
         const targetElement = document.getElementById(targetId);
         if (!targetElement) return;
@@ -78,7 +508,7 @@
             updateLoadingStatus('increment_processed'); 
             
             if (response.status === 'OK' && response.lat && response.lng) {
-                // ... (中略: 座標とルート計算のロジックは変更なし) ...
+                
                 targetElement.innerHTML = response.address; 
                 
                 targetElement.dataset.lat = response.lat;
@@ -86,7 +516,6 @@
 
                 const currentCoordsStr = `${response.lat},${response.lng}`;
                 
-                // 1. 次のスポットへのルート計算 (スポット間移動) - 非同期待機
                 if (nextCoordInfo) {
                     const nextCoordElement = document.getElementById(nextCoordInfo.coordId);
                     
@@ -103,7 +532,6 @@
                     checkNextSpotCoords();
                 }
                 
-                // 2. 最初のスポットの出発地からのルート計算
                 if (departureInfo) {
                     fetchAndDisplayDirections(departureInfo.origin, currentCoordsStr, departureInfo.directionsId, departureInfo.date, departureInfo.time);
                 }
@@ -117,13 +545,143 @@
             targetElement.innerHTML = `<span class="loading-text error-text">GAS通信エラー: ${err.message.substring(0, 20)}...</span>`;
         });
     }
-    // ... (中略: renderPlans関数は変更なし) ...
 
-    /* ==================================== */
-    /* 🖱️ ボタンイベントリスナー (旅程生成) */
-    /* ==================================== */
+    function renderPlans(jsonText) {
+      loadingStatus.innerHTML = `<div class="loading-wrapper"><div class="spinner"></div> 旅程を画面に描画中...</div>`;
+      let data;
+      try {
+        data = JSON.parse(jsonText);
+      } catch (e) {
+        loadingStatus.style.display = 'none';
+        result.innerHTML = `
+          <p style="color:red;">⚠️ AIからの回答がJSON形式ではありませんでした。生の回答を代わりに表示します。</p>
+          <pre style="white-space: pre-wrap; border: 1px solid #ccc; padding: 15px; background-color: #f9f9f9;">${jsonText}</pre>
+        `;
+        return;
+      }
+
+      if (!data || !data.plans || data.plans.length === 0) {
+        loadingStatus.style.display = 'none';
+        result.innerHTML = '<p style="color:red;">⚠️ AIからの回答が空か、正しいJSON構造になっていませんでした。</p>';
+        return;
+      }
+      
+      data.plans.sort((a, b) => {
+          const costA = extractNumericCost(a.totalCost);
+          const costB = extractNumericCost(b.totalCost);
+          return costA - costB;
+      });
+
+      let htmlContent = '<h2>✈️ あなたにぴったり旅行プラン ✈️</h2>';
+      let fetchTargets = []; 
+      
+      const departureName = document.getElementById("departure").value.trim() || "東京駅";
+      const departureDate = document.getElementById('departureDate').value;
+      const startTime = parseInt(document.getElementById('startTime').value);
+      
+      data.plans.forEach((plan, index) => {
+        htmlContent += `<div class="plan-card">
+          <h3>
+            ${index + 1}. ${plan.planTitle || 'タイトル未定'} 
+            <span class="total-cost">トータル概算金額: ${plan.totalCost || '金額不明'}</span>
+          </h3>
+          <table class="plan-table">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>テーマ/概要</th>
+                <th>立ち寄りスポット</th>
+                <th>移動時間</th> 
+                <th>概要</th>
+                <th>滞在時間</th> 
+                <th>概算金額</th>
+                <th>住所</th> 
+              </tr>
+            </thead>
+            <tbody>`;
+
+        if (Array.isArray(plan.days)) {
+          plan.days.forEach(dayPlan => {
+            if (Array.isArray(dayPlan.stops) && dayPlan.stops.length > 0) {
+              dayPlan.stops.forEach((stop, stopIndex) => {
+                const coordTargetId = `coord-${index}-${dayPlan.day}-${stopIndex}`;
+                const directionsTargetId = `dir-${index}-${dayPlan.day}-${stopIndex}`; 
+                
+                const isFirstStop = stopIndex === 0;
+                const isLastStop = stopIndex === dayPlan.stops.length - 1;
+                const nextStopIndex = stopIndex + 1;
+                const nextCoordTargetId = isLastStop ? null : `coord-${index}-${dayPlan.day}-${nextStopIndex}`;
+
+                htmlContent += `<tr>`;
+                
+                if (isFirstStop) {
+                  htmlContent += `<td rowspan="${dayPlan.stops.length}" class="day-header">Day ${dayPlan.day}</td>`;
+                  htmlContent += `<td rowspan="${dayPlan.stops.length}">${dayPlan.theme || ''}</td>`;
+                }
+
+                htmlContent += `
+                  <td>${stop.spotName || ''}</td>
+                  <td><div id="${directionsTargetId}"></div></td> 
+                  <td>${stop.description || ''}</td>
+                  <td>${stop.time || ''}</td>
+                  <td>${stop.cost || '不明'}</td>
+                  <td><div id="${coordTargetId}"></div></td> 
+                </tr>`;
+                
+                if (stop.spotName) {
+                    updateLoadingStatus('increment_total'); 
+                    
+                    let nextCoordInfo = null;
+                    if (!isLastStop) {
+                        nextCoordInfo = {
+                            coordId: nextCoordTargetId,
+                            directionsId: `dir-${index}-${dayPlan.day}-${nextStopIndex}`,
+                            date: departureDate, 
+                            time: startTime,
+                        };
+                    }
+                    
+                    let departureInfo = null;
+                    if (isFirstStop && dayPlan.day === 1) {
+                         departureInfo = {
+                            origin: departureName,
+                            directionsId: directionsTargetId, 
+                            date: departureDate, 
+                            time: startTime,
+                        };
+                    }
+                    
+                    fetchTargets.push({ 
+                        name: stop.spotName, 
+                        coordId: coordTargetId,
+                        nextCoordInfo: nextCoordInfo,
+                        departureInfo: departureInfo, 
+                    });
+                }
+              });
+            } else {
+                 htmlContent += `<tr>
+                    <td class="day-header">Day ${dayPlan.day}</td>
+                    <td>${dayPlan.theme || '情報なし'}</td>
+                    <td colspan="6">この日のスポット情報がありませんでした。</td>
+                </tr>`;
+            }
+          });
+        }
+
+        htmlContent += `</tbody></table></div>`;
+      });
+      
+      result.innerHTML = htmlContent;
+      
+      updateLoadingStatus('start_sub_fetches');
+
+      fetchTargets.forEach(item => {
+          fetchAndDisplayCoordinates(item.name, item.coordId, item.nextCoordInfo, item.departureInfo);
+      });
+    }
+
     btn.addEventListener("click", () => {
-      // ... (中略: dataオブジェクトの作成は変更なし) ...
       const selectedTransports = Array.from(document.querySelectorAll('input[name="transport"]:checked')).map(el => el.value);
       const selectedPrefs = Array.from(document.querySelectorAll('input[name="prefs"]:checked')).map(el => el.value);
 
@@ -138,10 +696,9 @@
         arrivalDate: document.getElementById("arrivalDate").value,
         startTime: document.getElementById("startTime").value,
         endTime: document.getElementById("endTime").value,
-        action: 'generatePlan' // GASのdoPostで処理する関数を指定
+        action: 'generatePlan' 
       };
 
-      // ... (中略: 入力チェック、ローディング表示) ...
       if (!data.location || !data.departure || !data.departureDate || !data.arrivalDate) {
         alert("旅行先、出発地、出発日、到着日のすべてを入力してください✈️");
         return;
@@ -156,7 +713,6 @@
       
       btn.disabled = true;
 
-      // 💡 修正: runGasApi関数で統一的にAPIを呼び出す
       runGasApi('generatePlan', data)
       .then(res => {
           btn.disabled = false;
@@ -170,7 +726,6 @@
       .catch(err => {
           btn.disabled = false;
           loadingStatus.style.display = 'none';
-          // 'Failed to fetch' エラーは、ほとんどの場合、CORSかURLの間違いです。
           result.innerHTML = "<p style='color:red;'>通信エラー: " + err.message + "</p>";
           if (err.message.includes("Failed to fetch") || err.message.includes("HTTP Error")) {
              result.innerHTML += "<p style='color:orange; font-size:0.9em;'>**💡【重要】**通信エラーが発生しています。**GASのデプロイURL**が正しいか、または**アクセス権限（全員）**が設定されているか確認してください。</p>";
@@ -178,3 +733,5 @@
       });
     });
   </script>
+</body>
+</html>
